@@ -7,10 +7,6 @@ const prisma = new PrismaClient()
 const api = express()
 const PORT = process.env.API_PORT
 
-api.get("/", (req, res) => {
-  res.send("hello world!")
-})
-
 api.get("/weekly", async (req, res) => {
   const weeklyAmounts = await weeklyAmount({}, ["userId"], false)
 
