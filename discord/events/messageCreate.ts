@@ -33,5 +33,5 @@ export async function execute(message: Message) {
   })
 
   await message.react("👍")
-  await message.reply(`Prost <@${message.author.id}>! Ich habe ein :beer: hinzugefügt.`)
+  await message.reply(`Prost <@${message.author.id}>! Ich habe ${beerCount} :beer: hinzugefügt.`)
 }
