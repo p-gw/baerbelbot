@@ -4,35 +4,57 @@ import { CommandInteraction } from "discord.js"
 const prisma = new PrismaClient()
 
 export const data = new SlashCommandBuilder()
-  .setName("rangliste")
-  .setDescription("Berechne die :beer: Rangliste aller Benutzer.")
+    .setName("rangliste")
+    .setDescription("Berechne die :beer: Rangliste aller Benutzer.")
+    .addIntegerOption(value => value.setName("year")
+        .setDescription("Jahr")
+        .setRequired(false))
 
 export async function execute(interaction: CommandInteraction) {
-  const ranking = await prisma.consumption.groupBy({
-    by: ["userId"],
-    where: {
-      user: {
-        username: {
-          not: "offset"
-        }
-      }
-    },
-    _sum: {
-      amount: true
-    },
-    orderBy: {
-      _sum: {
-        amount: "desc"
-      }
+    const year = interaction.options.getInteger("year", false)
+    const baseFilter = { user: { username: { not: "offset" } } }
+
+    if (year && year < 2020) {
+        return await interaction.reply("Für die Jahre vor 2020 gibt es leider keine Rangliste... <:assihidethepain:658319611875557396>")
     }
-  })
 
-  let response = `**Rangliste**\n`;
-  for (let i = 0; i < ranking.length; i++) {
-    const userId = ranking[i].userId
-    const userTotal = ranking[i]._sum.amount
-    response += `${i + 1}. <@${userId}> - ${userTotal} :beers:\n`
-  }
+    let filter;
+    if (year) {
+        filter = {
+            ...baseFilter, timestamp: {
+                gte: new Date(`${year}-01-01`),
+                lt: new Date(`${year + 1}-01-01`)
+            }
+        }
+    } else {
+        filter = baseFilter
+    }
 
-  await interaction.reply(response)
+    const ranking = await prisma.consumption.groupBy({
+        by: ["userId"],
+        where: filter,
+        _sum: {
+            amount: true
+        },
+        orderBy: {
+            _sum: {
+                amount: "desc"
+            }
+        }
+    })
+
+    let response = `**Rangliste**`;
+
+    if (year) {
+        response += ` (Jahr: ${year})`;
+    }
+    response += "\n";
+
+    for (let i = 0; i < ranking.length; i++) {
+        const userId = ranking[i].userId
+        const userTotal = ranking[i]._sum.amount
+        response += `${i + 1}. <@${userId}> - ${userTotal} :beers:\n`
+    }
+
+    await interaction.reply(response)
 }
