@@ -1,5 +1,6 @@
 test.ts
 prisma/seed
+*.js
 
 # Logs
 logs
