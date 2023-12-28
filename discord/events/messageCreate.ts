@@ -32,18 +32,16 @@ export async function execute(message: Message) {
         }
     })
 
-    const reactEmojis = [
-        "👍",
-        "👌",
-        "<:haeupl:480761263253618698>",
-        "<:120:740162490905657344>",
-        "<:strolz:477753953053048842>",
-        "<:ohmygod:431963369356918795>",
-        "<:zipfer:618092775451394059>"
-    ]
-
+    const baseEmojis = ["👍", "👌"]
+    const guildEmojis = message.guild?.emojis.cache.map((e, id) => `<:${e.name}:${id}>`)
+    const reactEmojis = baseEmojis.concat(guildEmojis || [])
     const reactEmoji = reactEmojis[Math.floor(Math.random() * reactEmojis.length)]
 
-    await message.react(reactEmoji)
-    await message.reply(`Prost <@${message.author.id}>! Ich habe ${beerCount} :beer: hinzugefügt.`)
+    try {
+        await message.react(reactEmoji)
+    } catch (error) {
+        await message.react('👍')
+    } finally {
+        await message.reply(`Prost <@${message.author.id}>! Ich habe ${beerCount} :beer: hinzugefügt.`)
+    }
 }
