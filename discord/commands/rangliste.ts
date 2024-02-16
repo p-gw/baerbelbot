@@ -44,6 +44,8 @@ export async function execute(interaction: CommandInteraction) {
     })
 
     let response = `**Rangliste**`;
+    let currentRank: number = 1;
+    let previousUserTotal: number | undefined;
 
     if (year) {
         response += ` (Jahr: ${year})`;
@@ -53,7 +55,13 @@ export async function execute(interaction: CommandInteraction) {
     for (let i = 0; i < ranking.length; i++) {
         const userId = ranking[i].userId
         const userTotal = ranking[i]._sum.amount
-        response += `${i + 1}. <@${userId}> - ${userTotal} :beers:\n`
+
+        if (previousUserTotal !== undefined && userTotal !== previousUserTotal) {
+            currentRank = i + 1;
+        }
+
+        response += `${currentRank}. <@${userId}> - ${userTotal} :beers:\n`
+        previousUserTotal = userTotal;
     }
 
     await interaction.reply(response)
